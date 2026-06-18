@@ -454,6 +454,8 @@ export function uniqueChannels(videos: Video[]): string[] {
   return [...new Set(videos.map((v) => v.channel_name || "Not in a channel"))].sort();
 }
 
+export const SYNC_INTERVAL_HOURS = 6;
+
 export type DataCoverage = {
   totalVideos: number;
   videosWithPlays: number;
@@ -464,7 +466,29 @@ export type DataCoverage = {
   lastSyncAt: string | null;
   lastSyncStatus: string | null;
   lastSyncRecords: number | null;
+  nextSyncAt: string | null;
+  syncIntervalHours: number;
 };
+
+/** Next scheduled sync (every 6h from last successful run). */
+export function nextSyncTime(lastSyncAt: string | null, now = new Date()): Date | null {
+  if (!lastSyncAt) return null;
+  let next = new Date(new Date(lastSyncAt).getTime() + SYNC_INTERVAL_HOURS * 60 * 60 * 1000);
+  while (next <= now) {
+    next = new Date(next.getTime() + SYNC_INTERVAL_HOURS * 60 * 60 * 1000);
+  }
+  return next;
+}
+
+export function formatTimeUntil(target: Date, now = new Date()): string {
+  const ms = target.getTime() - now.getTime();
+  if (ms <= 0) return "soon";
+  const totalMinutes = Math.floor(ms / 60_000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours > 0) return `in ${hours}h ${minutes}m`;
+  return `in ${minutes}m`;
+}
 
 export function dataCoverage(
   metrics: DailyMetric[],
@@ -475,6 +499,8 @@ export function dataCoverage(
   const videosWithPlays = new Set(playRows.map((m) => m.video_external_id)).size;
   const dates = metrics.map((m) => m.metric_date).sort();
   const last = syncRuns[0];
+  const lastSyncAt = last?.started_at ?? null;
+  const next = nextSyncTime(lastSyncAt);
 
   return {
     totalVideos: videos.length,
@@ -483,8 +509,10 @@ export function dataCoverage(
     playEvents: playRows.reduce((s, m) => s + Number(m.metric_value), 0),
     earliestMetric: dates[0] ?? null,
     latestMetric: dates[dates.length - 1] ?? null,
-    lastSyncAt: last?.started_at ?? null,
+    lastSyncAt,
     lastSyncStatus: last?.status ?? null,
     lastSyncRecords: last?.records_synced ?? null,
+    nextSyncAt: next?.toISOString() ?? null,
+    syncIntervalHours: SYNC_INTERVAL_HOURS,
   };
 }
