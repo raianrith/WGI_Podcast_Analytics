@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
-import { DM_Sans, Libre_Baskerville } from "next/font/google";
+import { Fraunces, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 
-const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans" });
-const libre = Libre_Baskerville({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-libre" });
+const sans = Instrument_Sans({ subsets: ["latin"], variable: "--font-geist" });
+const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces" });
 
 export const metadata: Metadata = {
-  title: "Wistia Analytics | Weidert Group",
-  description: "Video performance dashboard powered by Wistia",
+  title: "ChangeOver Podcast Analytics | Weidert Group",
+  description: "Monthly podcast performance across YouTube, Apple, and Spotify",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${dmSans.variable} ${libre.variable} font-sans`} suppressHydrationWarning>
+      <body className={`${sans.variable} ${fraunces.variable} font-sans`} suppressHydrationWarning>
         {children}
       </body>
     </html>

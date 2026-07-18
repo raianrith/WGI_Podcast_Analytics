@@ -17,181 +17,266 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { COLORS, NonZeroTooltip } from "./chart-utils";
 
-const TEAL = "#0D9488";
-const NAVY = "#1B2A41";
-const PREV = "#94A3B8";
+const GRID = "#EDEAE4";
+const TICK = "#9CA3AF";
 
-export function PlaysChart({ data, title = "Daily Plays" }: { data: { date: string; plays: number }[]; title?: string }) {
-  return (
-    <div className="card p-6 h-[360px]">
-      <h3 className="font-display text-lg text-navy mb-4">{title}</h3>
-      <ResponsiveContainer width="100%" height="85%">
-        <AreaChart data={data}>
-          <defs>
-            <linearGradient id="playsGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={TEAL} stopOpacity={0.35} />
-              <stop offset="100%" stopColor={TEAL} stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-          <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#64748B" }} tickFormatter={(d) => d.slice(5)} />
-          <YAxis tick={{ fontSize: 11, fill: "#64748B" }} />
-          <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #E2E8F0" }} />
-          <Area type="monotone" dataKey="plays" stroke={TEAL} fill="url(#playsGrad)" strokeWidth={2} />
-        </AreaChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
+const tip = {
+  borderRadius: 14,
+  border: "1px solid rgba(18,24,38,0.06)",
+  background: "rgba(255,255,255,0.98)",
+  boxShadow: "0 8px 24px rgba(18,24,38,0.08)",
+  fontSize: 12,
+  color: "#121826",
+  padding: "10px 12px",
+};
 
-export function PeriodTrendChart({
+const axisProps = {
+  tick: { fontSize: 11, fill: TICK },
+  axisLine: false as const,
+  tickLine: false as const,
+};
+
+export function PlatformTrendChart({
   data,
-  title,
 }: {
-  data: { label: string; plays: number }[];
-  title: string;
+  data: { month: string; youtube: number; apple: number; spotify: number }[];
 }) {
   return (
-    <div className="card p-6 h-[360px]">
-      <h3 className="font-display text-lg text-navy mb-4">{title}</h3>
-      <ResponsiveContainer width="100%" height="85%">
+    <div className="card p-7 h-[400px]">
+      <h3 className="chart-title">Consumption by platform</h3>
+      <p className="chart-sub">YouTube views · Apple plays · Spotify plays</p>
+      <ResponsiveContainer width="100%" height="82%">
         <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-          <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#64748B" }} />
-          <YAxis tick={{ fontSize: 11, fill: "#64748B" }} />
-          <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #E2E8F0" }} />
-          <Line type="monotone" dataKey="plays" stroke={TEAL} strokeWidth={2.5} dot={{ fill: TEAL, r: 4 }} />
+          <CartesianGrid strokeDasharray="2 6" stroke={GRID} vertical={false} strokeOpacity={0.9} />
+          <XAxis dataKey="month" {...axisProps} />
+          <YAxis {...axisProps} allowDecimals={false} />
+          <Tooltip contentStyle={tip} />
+          <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10, color: "#6B7280" }} />
+          <Line
+            type="monotone"
+            dataKey="youtube"
+            name="YouTube"
+            stroke="#E11D48"
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 5, strokeWidth: 0 }}
+          />
+          <Line
+            type="monotone"
+            dataKey="apple"
+            name="Apple"
+            stroke="#737373"
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 5, strokeWidth: 0 }}
+          />
+          <Line
+            type="monotone"
+            dataKey="spotify"
+            name="Spotify"
+            stroke="#1DB954"
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 5, strokeWidth: 0 }}
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>
   );
 }
 
-export function ComparisonChart({
+export function ShareDonut({
   data,
-  currentLabel,
-  previousLabel,
-  title,
 }: {
-  data: { metric: string; current: number; previous: number }[];
-  currentLabel: string;
-  previousLabel: string;
-  title: string;
+  data: { name: string; value: number; pct: number; color: string }[];
 }) {
+  const total = data.reduce((s, d) => s + d.value, 0);
   return (
-    <div className="card p-6 h-[380px]">
-      <h3 className="font-display text-lg text-navy mb-4">{title}</h3>
-      <ResponsiveContainer width="100%" height="85%">
-        <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-          <XAxis dataKey="metric" tick={{ fontSize: 11, fill: NAVY }} />
-          <YAxis tick={{ fontSize: 11, fill: "#64748B" }} />
-          <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #E2E8F0" }} />
-          <Legend />
-          <Bar dataKey="current" name={currentLabel} fill={TEAL} radius={[4, 4, 0, 0]} />
-          <Bar dataKey="previous" name={previousLabel} fill={PREV} radius={[4, 4, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
+    <div className="card p-7 flex flex-col min-h-[400px] h-full overflow-hidden">
+      <h3 className="chart-title shrink-0">Share of total plays</h3>
+      <p className="text-xs text-ink-muted mt-1 mb-3 shrink-0">Selected period</p>
 
-export function ProjectPie({ data }: { data: { project: string; plays: number }[] }) {
-  const top = data.slice(0, 6);
-  return (
-    <div className="card p-6 h-[360px]">
-      <h3 className="font-display text-lg text-navy mb-4">Plays by Project</h3>
-      <ResponsiveContainer width="100%" height="85%">
-        <PieChart>
-          <Pie data={top} dataKey="plays" nameKey="project" cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={2}>
-            {top.map((_, i) => (
-              <Cell key={i} fill={COLORS[i % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #E2E8F0" }} />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
-export function BarRanking({
-  data,
-  title,
-  labelKey,
-}: {
-  data: Record<string, number | string>[];
-  title: string;
-  labelKey: string;
-}) {
-  return (
-    <div className="card p-6 h-[360px]">
-      <h3 className="font-display text-lg text-navy mb-4">{title}</h3>
-      <ResponsiveContainer width="100%" height="85%">
-        <BarChart data={data.slice(0, 8)} layout="vertical" margin={{ left: 20 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" horizontal={false} />
-          <XAxis type="number" tick={{ fontSize: 11, fill: "#64748B" }} />
-          <YAxis type="category" dataKey={labelKey} width={140} tick={{ fontSize: 10, fill: NAVY }} />
-          <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #E2E8F0" }} />
-          <Bar dataKey="plays" fill={TEAL} radius={[0, 4, 4, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
-export function VideoMonthlyPlaysChart({
-  rows,
-  seriesKeys,
-  seriesLabels,
-  title = "Month over Month Plays by Video",
-}: {
-  rows: ({ label: string } & Record<string, number | string | null>)[];
-  seriesKeys: string[];
-  seriesLabels: Record<string, string>;
-  title?: string;
-}) {
-  if (rows.length === 0 || seriesKeys.length === 0) {
-    return (
-      <div className="card p-6 h-[420px] flex items-center justify-center text-navy/40 text-sm">
-        No video play data for the selected period.
+      <div className="relative flex-1 min-h-[180px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              innerRadius={60}
+              outerRadius={90}
+              paddingAngle={3}
+              stroke="none"
+            >
+              {data.map((d) => (
+                <Cell key={d.name} fill={d.color} />
+              ))}
+            </Pie>
+            <Tooltip contentStyle={tip} formatter={(v: number, n: string) => [v.toLocaleString(), n]} />
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <p className="text-2xl font-semibold leading-none tracking-tight tabular-nums">
+            {total.toLocaleString()}
+          </p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-muted mt-1.5">
+            Total plays
+          </p>
+        </div>
       </div>
-    );
-  }
 
+      <ul className="mt-4 shrink-0 w-full space-y-2 border-t border-paper-hairline pt-4">
+        {data.map((d) => (
+          <li key={d.name} className="flex items-center justify-between gap-3 text-sm w-full min-w-0">
+            <span className="flex items-center gap-2.5 min-w-0 truncate">
+              <span className="w-2 h-2 rounded-full shrink-0 ring-2 ring-black/[0.03]" style={{ background: d.color }} />
+              <span className="truncate text-ink-soft">{d.name}</span>
+            </span>
+            <span className="font-medium tabular-nums shrink-0 text-ink-muted">
+              {d.value.toLocaleString()}
+              <span className="text-ink ml-2.5">{d.pct.toFixed(1)}%</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export function TotalTrendChart({ data }: { data: { month: string; total: number; hours: number }[] }) {
   return (
-    <div className="card p-6 h-[500px]">
-      <h3 className="font-display text-lg text-navy mb-1">{title}</h3>
-      <p className="text-xs text-navy/50 mb-4">
-        Top {seriesKeys.length} videos · bars &amp; tooltips hide zero-play months
-      </p>
-      <ResponsiveContainer width="100%" height="88%">
-        <BarChart data={rows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
-          <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#64748B" }} />
-          <YAxis tick={{ fontSize: 11, fill: "#64748B" }} allowDecimals={false} />
-          <Tooltip
-            cursor={{ fill: "rgba(15, 28, 46, 0.04)" }}
-            content={<NonZeroTooltip seriesLabels={seriesLabels} />}
+    <div className="card p-7 h-[360px]">
+      <h3 className="chart-title">Total monthly plays</h3>
+      <p className="chart-sub">All platforms combined</p>
+      <ResponsiveContainer width="100%" height="80%">
+        <AreaChart data={data}>
+          <defs>
+            <linearGradient id="totalGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#C45C26" stopOpacity={0.28} />
+              <stop offset="100%" stopColor="#C45C26" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="2 6" stroke={GRID} vertical={false} />
+          <XAxis dataKey="month" {...axisProps} />
+          <YAxis {...axisProps} allowDecimals={false} />
+          <Tooltip contentStyle={tip} />
+          <Area
+            type="monotone"
+            dataKey="total"
+            name="Plays"
+            stroke="#C45C26"
+            fill="url(#totalGrad)"
+            strokeWidth={2}
+            activeDot={{ r: 5, strokeWidth: 0 }}
           />
-          <Legend
-            wrapperStyle={{ fontSize: 10, paddingTop: 16 }}
-            formatter={(key: string) => seriesLabels[key] ?? key}
-          />
-          {seriesKeys.map((key, i) => (
-            <Bar
-              key={key}
-              dataKey={key}
-              name={key}
-              fill={COLORS[i % COLORS.length]}
-              radius={[4, 4, 0, 0]}
-              maxBarSize={28}
-            />
-          ))}
-        </BarChart>
+        </AreaChart>
       </ResponsiveContainer>
+    </div>
+  );
+}
+
+export function DualBarChart({
+  title,
+  subtitle,
+  data,
+  aKey,
+  bKey,
+  aName,
+  bName,
+  aColor,
+  bColor,
+}: {
+  title: string;
+  subtitle?: string;
+  data: Record<string, string | number>[];
+  aKey: string;
+  bKey: string;
+  aName: string;
+  bName: string;
+  aColor: string;
+  bColor: string;
+}) {
+  return (
+    <div className="card p-7 h-[380px] flex flex-col">
+      <h3 className="chart-title">{title}</h3>
+      {subtitle ? <p className="chart-sub">{subtitle}</p> : <div className="mb-4" />}
+      <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="2 6" stroke={GRID} vertical={false} />
+            <XAxis dataKey="month" {...axisProps} />
+            <YAxis {...axisProps} allowDecimals={false} />
+            <Tooltip contentStyle={tip} cursor={{ fill: "rgba(18,24,38,0.03)" }} />
+            <Legend wrapperStyle={{ fontSize: 12, color: "#6B7280" }} />
+            <Bar dataKey={aKey} name={aName} fill={aColor} radius={[6, 6, 0, 0]} maxBarSize={20} />
+            <Bar dataKey={bKey} name={bName} fill={bColor} radius={[6, 6, 0, 0]} maxBarSize={20} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+export function SingleLineChart({
+  title,
+  subtitle,
+  data,
+  dataKey,
+  color,
+}: {
+  title: string;
+  subtitle?: string;
+  data: Record<string, string | number>[];
+  dataKey: string;
+  color: string;
+}) {
+  const gradId = `lineGrad-${dataKey}-${color.replace("#", "")}`;
+  return (
+    <div className="card p-7 h-[380px] flex flex-col">
+      <h3 className="chart-title">{title}</h3>
+      {subtitle ? <p className="chart-sub">{subtitle}</p> : <div className="mb-4" />}
+      <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data}>
+            <defs>
+              <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={color} stopOpacity={0.18} />
+                <stop offset="100%" stopColor={color} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="2 6" stroke={GRID} vertical={false} />
+            <XAxis dataKey="month" {...axisProps} />
+            <YAxis {...axisProps} />
+            <Tooltip contentStyle={tip} />
+            <Area
+              type="monotone"
+              dataKey={dataKey}
+              stroke={color}
+              fill={`url(#${gradId})`}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 5, fill: color, strokeWidth: 0 }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+export function HighlightCard({ title, items }: { title: string; items: { label: string; value: string }[] }) {
+  return (
+    <div className="card p-7">
+      <h3 className="chart-title mb-5">{title}</h3>
+      <ul className="space-y-5">
+        {items.map((item) => (
+          <li key={item.label}>
+            <p className="label mb-1.5">{item.label}</p>
+            <p className="text-sm text-ink leading-relaxed">{item.value || "—"}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

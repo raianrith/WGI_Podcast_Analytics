@@ -5,27 +5,43 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        navy: {
-          DEFAULT: "#1B2A41",
-          dark: "#0F1C2E",
-          light: "#2A3F5F",
+        ink: {
+          DEFAULT: "#121826",
+          soft: "#1E293B",
+          muted: "#6B7280",
+          faint: "#9CA3AF",
         },
-        teal: {
-          DEFAULT: "#0D9488",
-          light: "#14B8A6",
-          muted: "#99F6E4",
+        paper: {
+          DEFAULT: "#F6F4F0",
+          warm: "#FBF9F6",
+          card: "#FFFFFF",
+          hairline: "rgb(18 24 38 / 0.06)",
         },
-        slate: {
-          wash: "#F4F7FA",
-          border: "#E2E8F0",
+        yt: "#E11D48",
+        apple: "#737373",
+        spotify: "#1DB954",
+        accent: {
+          DEFAULT: "#C45C26",
+          soft: "#E8A87C",
+          muted: "rgb(196 92 38 / 0.12)",
         },
       },
       fontFamily: {
-        sans: ["var(--font-dm-sans)", "system-ui", "sans-serif"],
-        display: ["var(--font-libre)", "Georgia", "serif"],
+        sans: ["var(--font-geist)", "system-ui", "sans-serif"],
+        display: ["var(--font-fraunces)", "Georgia", "serif"],
+      },
+      borderRadius: {
+        card: "1rem",
+        control: "0.75rem",
       },
       boxShadow: {
-        card: "0 1px 3px rgba(27, 42, 65, 0.08), 0 8px 24px rgba(27, 42, 65, 0.06)",
+        soft: "0 1px 2px rgba(18,24,38,0.04), 0 4px 16px rgba(18,24,38,0.04)",
+        lift: "0 2px 4px rgba(18,24,38,0.04), 0 12px 28px rgba(18,24,38,0.08)",
+        inset: "inset 0 1px 0 rgba(255,255,255,0.6)",
+      },
+      transitionDuration: {
+        150: "150ms",
+        200: "200ms",
       },
     },
   },

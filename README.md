@@ -1,59 +1,54 @@
-# WGI Wistia Analytics
+# ChangeOver Podcast Analytics
 
-Automated Wistia → Supabase pipeline with a Weidert-themed web dashboard.
+Monthly podcast performance dashboard for **YouTube**, **Apple Podcasts**, and **Spotify**.
+
+Data is entered manually each month via the admin panel (replacing the Google Sheet / Databox workflow).
 
 ## Architecture
 
 ```
-Wistia API  →  Python sync (scheduled)  →  Supabase  →  Next.js dashboard
+Admin form (monthly entry) → Supabase → Next.js dashboard
 ```
 
-## 1. Supabase setup
+## 1. Supabase
 
-1. Open your [Supabase SQL Editor](https://supabase.com/dashboard)
-2. Run the contents of `supabase/schema.sql`
-3. Copy your **anon key** (dashboard) and optionally **service_role key** (sync writes)
+1. Open [Supabase SQL Editor](https://supabase.com/dashboard)
+2. Run `supabase/schema.sql` (creates `podcast_monthly_metrics`)
+3. Copy project URL + anon key
 
-## 2. Python sync
-
-```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-# Add WISTIA_API_TOKEN and SUPABASE_KEY
-python scripts/sync.py
-```
-
-Schedule automatic sync:
-
-```bash
-python scripts/scheduler.py   # every 6 hours
-```
-
-## 3. Web dashboard
+## 2. Web app
 
 ```bash
 cd web
 cp .env.example .env.local
-# Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
+# fill in NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
 npm install
 npm run dev
 ```
 
-Open http://localhost:3000
+- Dashboard: http://localhost:3000
+- Admin: http://localhost:3000/admin
 
-## Environment variables
+Default admin password: `weidert` (override with `NEXT_PUBLIC_ADMIN_PASSWORD`)
 
-| Variable | Purpose |
-|----------|---------|
-| `WISTIA_API_TOKEN` | Wistia API access |
-| `SUPABASE_URL` | `https://hnkgyxpsobjsjxfvhycb.supabase.co` |
-| `SUPABASE_KEY` | Anon key (sync + read) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Optional — preferred for sync writes |
-| `NEXT_PUBLIC_SUPABASE_*` | Same URL/key for the web app |
+## 3. Import historical sheet data
 
-## Notes
+In Admin → **Import sheet history** to load months from the old Google Sheet (Sep 2024–Nov 2025).
 
-- First sync with ~780 videos takes ~5–10 minutes
-- Date filters on the dashboard read from Supabase daily metrics
-- For production, use the **service_role** key only in the sync script (never in the browser)
+## Dashboard structure
+
+| Tab | What you see |
+|-----|----------------|
+| **Overview** | Total plays, platform share, multi-line trends, top episodes |
+| **YouTube** | Views vs unique, watch time, % viewed, clips |
+| **Apple** | Plays, listeners vs engaged, followers, hours |
+| **Spotify** | Plays vs streams (>60s), listeners, impressions, hours |
+
+## Monthly workflow
+
+1. **YouTube** — Export Studio **Table data** CSV → Admin → **Upload Studio CSV**
+2. **Spotify** — Upload episode CSV (`name, plays, streams, audience_size, releaseDate`) → Admin → **Upload episode CSV**
+3. **Apple + Spotify extras** — Enter Apple totals and Spotify followers / impressions / hours in the manual form
+4. Dashboard updates after each save/import
+
+YouTube and Spotify CSV imports store episode/video rows and roll totals into that month’s metrics.
